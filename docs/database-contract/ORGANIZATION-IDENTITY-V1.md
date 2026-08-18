@@ -4,8 +4,8 @@
 
 **Step:** 1 — Database Contract  
 **Status:** Implemented in Flyway and committed to `main`  
-**Migration:** `src/main/resources/db/migration/V1__create_organization_identity_schema.sql`  
-**Commit:** `a3a173b3df5feea2e4bc290ea62a2ae59559af03`
+**Initial migration:** `src/main/resources/db/migration/V1__create_organization_identity_schema.sql`  
+**Correction migration:** `src/main/resources/db/migration/V2__scope_app_user_email_to_organization.sql`
 
 This document records the database contract agreed for the first application domain. It is intentionally limited to the database layer. Domain entities, repositories, services, DTOs, and REST controllers are not part of this step.
 
@@ -82,7 +82,7 @@ Tenant-scoped application identity.
 |---|---|---:|---|
 | `id` | `BIGINT UNSIGNED` | NO | PK, auto increment |
 | `organization_id` | `BIGINT UNSIGNED` | NO | FK → `organization.id`; tenant discriminator |
-| `email` | `VARCHAR(254)` | NO | Globally unique user email |
+| `email` | `VARCHAR(254)` | NO | Unique within organization |
 | `username` | `VARCHAR(100)` | NO | Unique within organization |
 | `password_hash` | `VARCHAR(255)` | NO | Password hash only; plaintext password is never stored |
 | `full_name` | `VARCHAR(150)` | NO | User display name |
@@ -95,9 +95,10 @@ Tenant-scoped application identity.
 
 Uniqueness rules:
 
-- `email` is globally unique.
+- `(organization_id, email)` is unique.
 - `(organization_id, username)` is unique.
-- Soft-deleted email/username values remain reserved in V1 because the constraints are physical unique constraints rather than reusable soft-delete keys.
+- The same email may therefore exist in different organizations because each `app_user` row represents a tenant-scoped identity.
+- Soft-deleted email/username values remain reserved within their organization in V1 because the constraints are physical unique constraints rather than reusable soft-delete keys.
 
 ### 4. `membership`
 
@@ -138,6 +139,13 @@ is_system_role = FALSE -> organization_id IS NOT NULL
 ```
 
 This is implemented with a MySQL `CHECK` constraint.
+
+Role-name uniqueness is intentionally an application-level invariant in V1 (Option A):
+
+- global/system role names are unique among global/system roles;
+- tenant-custom role names are unique within the tenant.
+
+No generated scope column is introduced solely for this rule at this stage.
 
 ### 6. `permission`
 
@@ -262,17 +270,6 @@ A -> B -> C -> A
 
 Cycle prevention belongs to the Service layer in V1.
 
-## Role-name uniqueness
-
-V1 does not currently enforce a database-level uniqueness rule for `role.name`.
-
-The intended business rule is:
-
-- global/system role names are unique among global/system roles;
-- tenant-custom role names are unique within the tenant.
-
-This is currently an application-level invariant. The schema intentionally does not introduce a generated scope column solely for this rule before the business semantics are further validated.
-
 ## Indexing strategy
 
 Indexes are provided for the main tenant-scoped and relationship lookup paths:
@@ -286,6 +283,30 @@ Indexes are provided for the main tenant-scoped and relationship lookup paths:
 
 The schema is designed to support repository queries that always scope tenant-owned records explicitly.
 
+## Migration history
+
+### V1 — Initial organization identity schema
+
+Created the complete organization/identity backbone and its relational constraints.
+
+### V2 — Correct tenant-scoped user email uniqueness
+
+The initial V1 contract incorrectly made `app_user.email` globally unique. That conflicted with the intended identity model: one real-world person may have a separate `app_user` row in multiple organizations.
+
+V2 therefore changes the constraint from:
+
+```text
+UNIQUE (email)
+```
+
+to:
+
+```text
+UNIQUE (organization_id, email)
+```
+
+The original V1 migration is intentionally not rewritten. Once a Flyway migration may have been applied, changing its contents would violate Flyway migration immutability/checksum expectations. V2 is the forward-compatible correction migration.
+
 ## What was implemented
 
 This step implemented only the database contract:
@@ -295,11 +316,14 @@ This step implemented only the database contract:
 3. Added primary keys and foreign keys.
 4. Added status/type `CHECK` constraints.
 5. Added role system-vs-tenant scope `CHECK` constraint.
-6. Added global and tenant-scoped uniqueness rules agreed for V1.
-7. Added soft-delete columns to tenant/domain entities.
-8. Added UTC microsecond timestamp columns.
-9. Added indexes for tenant-scoped access and relationship traversal.
-10. Prevented cascading deletes with explicit `RESTRICT` actions.
+6. Added global tenant slug uniqueness.
+7. Added tenant-scoped user email and username uniqueness.
+8. Added soft-delete columns to tenant/domain entities.
+9. Added UTC microsecond timestamp columns.
+10. Added indexes for tenant-scoped access and relationship traversal.
+11. Prevented cascading deletes with explicit `RESTRICT` actions.
+12. Added V2 to correct the email uniqueness scope to the final tenant-scoped identity model.
+13. Locked role-name uniqueness as an application-level invariant (Option A).
 
 ## Deliberately not implemented yet
 
@@ -318,4 +342,4 @@ The following are outside Step 1 and must not be added until the Database Contra
 
 ## Next step gate
 
-Do not proceed to Domain Model until this V1 database contract has been reviewed and explicitly approved.
+Do not proceed to Domain Model until this V1 database contract and its V2 correction migration have been reviewed and explicitly approved.
