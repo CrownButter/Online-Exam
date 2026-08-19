@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 public class MembershipRole {
 
     @EmbeddedId
-    private MembershipRoleId id;
+    private MembershipRoleId id = new MembershipRoleId(null, null);
 
     @MapsId("membershipId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -31,7 +31,6 @@ public class MembershipRole {
     public MembershipRole(Membership membership, Role role) {
         this.membership = membership;
         this.role = role;
-        this.id = new MembershipRoleId(membership.getId(), role.getId());
     }
 
     public MembershipRoleId getId() {
