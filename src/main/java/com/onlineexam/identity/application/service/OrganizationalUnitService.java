@@ -17,7 +17,7 @@ public class OrganizationalUnitService {
 
     @Transactional(readOnly = true)
     public OrganizationalUnit get(Long organizationId, Long unitId) {
-        return organizationalUnitRepository.findByIdAndOrganizationId(unitId, organizationId)
+        return organizationalUnitRepository.findByIdAndOrganization_Id(unitId, organizationId)
                 .orElseThrow(() -> new IllegalArgumentException("Organizational unit not found: " + unitId));
     }
 }
