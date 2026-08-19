@@ -21,18 +21,18 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public Role getTenantRole(Long organizationId, Long roleId) {
-        return roleRepository.findByIdAndOrganizationId(roleId, organizationId)
+        return roleRepository.findByIdAndOrganization_Id(roleId, organizationId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
     }
 
     @Transactional(readOnly = true)
     public Role getGlobalRole(Long roleId) {
-        return roleRepository.findByIdAndOrganizationIdIsNull(roleId)
+        return roleRepository.findByIdAndOrganizationIsNull(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Global role not found: " + roleId));
     }
 
     public Role createTenantRole(Long organizationId, String name) {
-        if (roleRepository.existsByOrganizationIdAndName(organizationId, name)) {
+        if (roleRepository.existsByOrganization_IdAndName(organizationId, name)) {
             throw new IllegalArgumentException("Role already exists: " + name);
         }
         Organization organization = organizationRepository.findById(organizationId)
