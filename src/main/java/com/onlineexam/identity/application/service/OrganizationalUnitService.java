@@ -5,6 +5,7 @@ import com.onlineexam.identity.domain.entity.OrganizationalUnit;
 import com.onlineexam.identity.domain.entity.Organization;
 import com.onlineexam.identity.domain.repository.OrganizationalUnitRepository;
 import com.onlineexam.identity.domain.repository.OrganizationRepository;
+import com.onlineexam.shared.api.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ public class OrganizationalUnitService {
 
     public OrganizationalUnit create(Long organizationId, String name, OrganizationalUnitType type, Long parentUnitId) {
         Organization organization = organizationRepository.findById(organizationId)
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + organizationId));
+                .orElseThrow(() -> new NotFoundException("Organization not found: " + organizationId));
 
         OrganizationalUnit unit = new OrganizationalUnit(organization, name, type);
         if (parentUnitId != null) {
@@ -36,7 +37,7 @@ public class OrganizationalUnitService {
     @Transactional(readOnly = true)
     public OrganizationalUnit get(Long organizationId, Long unitId) {
         return organizationalUnitRepository.findByIdAndOrganization_Id(unitId, organizationId)
-                .orElseThrow(() -> new IllegalArgumentException("Organizational unit not found: " + unitId));
+                .orElseThrow(() -> new NotFoundException("Organizational unit not found: " + unitId));
     }
 
     public OrganizationalUnit update(Long organizationId, Long unitId, String name,
