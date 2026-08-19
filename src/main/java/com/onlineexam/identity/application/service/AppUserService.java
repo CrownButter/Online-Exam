@@ -17,19 +17,19 @@ public class AppUserService {
 
     @Transactional(readOnly = true)
     public AppUser get(Long organizationId, Long userId) {
-        return appUserRepository.findByIdAndOrganizationId(userId, organizationId)
+        return appUserRepository.findByIdAndOrganization_Id(userId, organizationId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
     }
 
     @Transactional(readOnly = true)
     public AppUser getByEmail(Long organizationId, String email) {
-        return appUserRepository.findByOrganizationIdAndEmail(organizationId, email)
+        return appUserRepository.findByOrganization_IdAndEmail(organizationId, email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found for email: " + email));
     }
 
     @Transactional(readOnly = true)
     public AppUser getByUsername(Long organizationId, String username) {
-        return appUserRepository.findByOrganizationIdAndUsername(organizationId, username)
+        return appUserRepository.findByOrganization_IdAndUsername(organizationId, username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found for username: " + username));
     }
 }
