@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class OrganizationService {
-
     private final OrganizationRepository organizationRepository;
 
     public OrganizationService(OrganizationRepository organizationRepository) {
@@ -28,19 +27,18 @@ public class OrganizationService {
                 .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + organizationId));
     }
 
-    public Organization rename(Long organizationId, String name) {
-        Organization organization = get(organizationId);
-        organization.rename(name);
-        return organization;
-    }
-
-    public Organization changeSlug(Long organizationId, String slug) {
+    public Organization update(Long organizationId, String name, String slug) {
         Organization organization = get(organizationId);
         if (!organization.getSlug().equals(slug) && organizationRepository.findBySlug(slug).isPresent()) {
             throw new IllegalArgumentException("Organization slug already exists: " + slug);
         }
+        organization.rename(name);
         organization.changeSlug(slug);
         return organization;
+    }
+
+    public void delete(Long organizationId) {
+        organizationRepository.delete(get(organizationId));
     }
 
     public Organization suspend(Long organizationId) {
