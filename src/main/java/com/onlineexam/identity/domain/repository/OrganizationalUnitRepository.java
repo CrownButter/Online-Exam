@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrganizationalUnitRepository extends JpaRepository<OrganizationalUnit, Long> {
 
-    Optional<OrganizationalUnit> findByIdAndOrganizationId(Long id, Long organizationId);
+    Optional<OrganizationalUnit> findByIdAndOrganization_Id(Long id, Long organizationId);
 }
