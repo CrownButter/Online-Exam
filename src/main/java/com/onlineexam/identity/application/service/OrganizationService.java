@@ -2,6 +2,7 @@ package com.onlineexam.identity.application.service;
 
 import com.onlineexam.identity.domain.entity.Organization;
 import com.onlineexam.identity.domain.repository.OrganizationRepository;
+import com.onlineexam.shared.api.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,7 @@ public class OrganizationService {
     @Transactional(readOnly = true)
     public Organization get(Long organizationId) {
         return organizationRepository.findById(organizationId)
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + organizationId));
+                .orElseThrow(() -> new NotFoundException("Organization not found: " + organizationId));
     }
 
     public Organization update(Long organizationId, String name, String slug) {
