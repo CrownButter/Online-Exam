@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
-    Optional<Membership> findByIdAndOrganizationId(Long id, Long organizationId);
+    Optional<Membership> findByIdAndOrganization_Id(Long id, Long organizationId);
 }
