@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
-    Optional<Role> findByIdAndOrganizationId(Long id, Long organizationId);
+    Optional<Role> findByIdAndOrganization_Id(Long id, Long organizationId);
 
-    Optional<Role> findByIdAndOrganizationIdIsNull(Long id);
+    Optional<Role> findByIdAndOrganizationIsNull(Long id);
 
-    boolean existsByOrganizationIdAndName(Long organizationId, String name);
+    boolean existsByOrganization_IdAndName(Long organizationId, String name);
 }
