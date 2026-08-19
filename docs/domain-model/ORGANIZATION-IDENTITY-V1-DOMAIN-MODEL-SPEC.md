@@ -3,7 +3,7 @@
 ## Status
 
 **Step:** 2 — Domain Model Specification  
-**Status:** Draft / awaiting explicit approval  
+**Status:** APPROVED  
 **Database Contract:** Approved and implemented through Flyway V2  
 
 This document is the schematic/contract for the Java domain model. It intentionally does **not** implement JPA entities yet.
@@ -17,9 +17,9 @@ The implementation gate remains:
 ```text
 Database Contract
     ↓
-Domain Model Specification  ← CURRENT STAGE
+Domain Model Specification  ✅ APPROVED
     ↓
-JPA Entity Implementation
+JPA Entity Implementation  ← NEXT STAGE
     ↓
 Repository
     ↓
@@ -86,6 +86,8 @@ Persistence strategy:
 ```
 
 Do not persist enum ordinals.
+
+`OrganizationalUnitType` is intentionally a closed V1 enum. Supporting tenant-defined/custom unit types later would require an explicit schema/domain change and migration rather than dynamic values in this version.
 
 ## 4. Organization
 
@@ -603,7 +605,29 @@ role_permission      = composite key
 
 No entity-level annotation should contradict the schema contract.
 
-## 20. Explicit Non-Goals for Entity Stage
+## 20. Concurrency / Optimistic Locking Note
+
+This Identity module intentionally does **not** introduce JPA `@Version` / optimistic locking in V1.
+
+Reason:
+
+```text
+Concurrent writes to the same Identity row are not currently a primary contention pattern.
+```
+
+This is a deliberate non-blocking decision, not a statement that optimistic locking is unnecessary for the platform as a whole.
+
+Future decision to revisit:
+
+```text
+Exam Attempt / Scoring
+```
+
+That area is explicitly expected to operate under high concurrency (targeting approximately 1000 CCU) and may require `@Version` or an equivalent concurrency-control strategy to prevent race conditions during concurrent submission, grading, score updates, or state transitions.
+
+Do not add `@Version` to the current Identity entities solely because of this note.
+
+## 21. Explicit Non-Goals for Entity Stage
 
 Do not implement in Step 2/Entity design:
 
@@ -620,11 +644,9 @@ Do not implement in Step 2/Entity design:
 - hierarchy traversal repositories
 - role/permission administration endpoints
 
-## 21. Approval Gate
+## 22. Approval Decision
 
-This specification is intentionally a **draft**.
-
-Before creating Java entities, the user must explicitly approve the decisions covering:
+The user explicitly approved all nine Domain Model decisions:
 
 1. unidirectional entity relationships;
 2. `@EmbeddedId` for mapping entities;
@@ -632,8 +654,21 @@ Before creating Java entities, the user must explicitly approve the decisions co
 4. `Role.isGlobalRole()`;
 5. lazy association loading;
 6. no default cascades;
-7. Hibernate soft-delete strategy using `@SQLDelete` plus the Hibernate 7 restriction annotation to be verified during implementation;
+7. Hibernate soft-delete strategy using `@SQLDelete` plus the current restriction annotation to be verified during implementation;
 8. controlled mutation rather than unrestricted setters;
 9. enum persistence with `EnumType.STRING`.
 
-Only after approval should Step 2 implementation begin.
+Additional acknowledged design notes:
+
+- `@Version` is not part of Identity V1 and is recorded as a future concurrency decision for Exam Attempt/Scoring.
+- `OrganizationalUnitType` remains a closed V1 enum. Custom tenant-defined unit types would require a deliberate schema/domain migration later.
+
+**Entity implementation is now unblocked and is the next stage.**
+
+## 23. Next Stage Gate
+
+Proceed to:
+
+**Step 2 — JPA Entity Implementation**
+
+Implementation must follow this specification exactly and must remain limited to the Domain Model layer. Do not create repositories, services, DTOs, controllers, authentication, or frontend as part of this stage.
