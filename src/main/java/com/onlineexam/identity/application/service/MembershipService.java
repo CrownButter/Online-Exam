@@ -17,7 +17,7 @@ public class MembershipService {
 
     @Transactional(readOnly = true)
     public Membership get(Long organizationId, Long membershipId) {
-        return membershipRepository.findByIdAndOrganizationId(membershipId, organizationId)
+        return membershipRepository.findByIdAndOrganization_Id(membershipId, organizationId)
                 .orElseThrow(() -> new IllegalArgumentException("Membership not found: " + membershipId));
     }
 }
