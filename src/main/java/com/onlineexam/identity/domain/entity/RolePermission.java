@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 public class RolePermission {
 
     @EmbeddedId
-    private RolePermissionId id;
+    private RolePermissionId id = new RolePermissionId(null, null);
 
     @MapsId("roleId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -31,7 +31,6 @@ public class RolePermission {
     public RolePermission(Role role, Permission permission) {
         this.role = role;
         this.permission = permission;
-        this.id = new RolePermissionId(role.getId(), permission.getId());
     }
 
     public RolePermissionId getId() {
